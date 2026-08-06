@@ -1,0 +1,477 @@
+@import "tailwindcss";
+
+/* ---- Palette (v3) -----------------------------------------------------
+   Theme is orange / white / black. Lime and cyan are gone.
+
+   The base darks are deliberately *lifted* off pure black: the old
+   #0a0a0f is only 4% luminance, which reads as a void rather than as a
+   dark room, and gave the whole site the "galaxy" feel. The new base is
+   a warm-leaning charcoal — still unmistakably a dark theme, but with
+   enough tone that surfaces separate from each other.
+
+   `accent-lime` and `accent-cyan` are kept as TOKEN NAMES only. They are
+   the site's two secondary accents and are referenced in ~84 places;
+   redefining what they resolve to re-themes everything at once, without
+   a rename churn across 24 files. lime → amber, cyan → warm sand.       */
+@theme inline {
+  --color-bg-primary: #15181e;
+  --color-bg-secondary: #1c2028;
+  --color-bg-elevated: #272c36;
+
+  --color-accent-orange: #ff6b35;
+  /* Secondary accents, both in the orange family. */
+  --color-accent-lime: #ffa45c;
+  --color-accent-cyan: #ffd9a0;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a8adba;
+  --color-text-muted: #6f7585;
+  --color-border: rgba(255, 255, 255, 0.09);
+  --color-glass: rgba(255, 255, 255, 0.05);
+
+  --font-display: var(--font-bebas), sans-serif;
+  --font-body: var(--font-inter), sans-serif;
+}
+
+:root {
+  --color-bg-primary: #15181e;
+  --color-bg-secondary: #1c2028;
+  --color-bg-elevated: #272c36;
+  --color-accent-primary: #ffa45c;
+  --color-accent-secondary: #ffd9a0;
+  --color-accent-cta: #ff6b35;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a8adba;
+  --color-text-muted: #6f7585;
+  --color-border: rgba(255, 255, 255, 0.09);
+  --color-glass: rgba(255, 255, 255, 0.05);
+
+  /* Hero gradient stops. Tuned toward gym rather than sunset: cold steel
+     blue-grey rising into heated-metal orange, with the violet/pink
+     mid-tones stripped out — those read tropical, not athletic. */
+  --hero-night: #12171f;
+  --hero-steel: #1c2430;
+  --hero-ember: #6b3524;
+  --hero-flare: #ff6b35;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Clears the sticky navbar on native hash jumps. Lenis passes its own
+     -80 offset, so this only matters on the reduced-motion path where Lenis
+     is disabled and the browser handles #anchor scrolling itself. */
+  scroll-padding-top: 5rem;
+  /* Written each frame by SmoothScrollProvider, clamped to -1…1. */
+  --scroll-velocity: 0;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Card surface. Tracks the lifted base tone — the old hardcoded
+   rgba(18,18,26) was tied to the pre-v3 near-black and would now read as a
+   dark hole punched into every section. */
+.glass-panel {
+  background: rgba(34, 39, 48, 0.62);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+/* Velocity shear. Only the marquee bands take it — applying a skew to
+   body text would smear glyph rendering during every scroll. */
+.velocity-skew {
+  transform: skewY(calc(var(--scroll-velocity) * 1.2deg));
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Suppress hover-only transitions mid-scroll: while the page is moving the
+   pointer sweeps across cards it never meant to touch, and each one firing
+   its hover transition is both visually noisy and needless paint work. */
+html.is-scrolling .glass-panel {
+  transition: none;
+}
+
+/* Background scroll lock while a modal is open. The Modal component toggles
+   this class; SmoothScrollProvider watches it and calls lenis.stop(), since
+   Lenis drives scroll from its own rAF loop and ignores overflow:hidden. The
+   rule below covers the reduced-motion path, where Lenis is never started and
+   native scrolling is what needs holding. */
+html.modal-open,
+html.modal-open body {
+  overflow: hidden;
+}
+
+/* Entrance animations run on transform/opacity/filter only, so promoting
+   the animated wrappers keeps them off the main-thread paint path. */
+.will-animate {
+  will-change: transform, opacity, filter;
+}
+
+/* Film-grain overlay — breaks up flat dark gradients and reads as premium.
+   Fixed + pointer-events-none so it never interferes with interaction. */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Section-level ambient glow, positioned by the consuming section. */
+.glow-orb {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  filter: blur(120px);
+}
+
+/* ---- Hero backdrop: sunrise ------------------------------------------
+   The previous version was a near-black field with small saturated blobs
+   floating in it — which is exactly the "galaxy" look: a void plus glowing
+   spots. The references do the opposite: colour IS the field, edge to edge,
+   and darkness is only used for contrast at the margins.
+
+   So this is one continuous graded field, not a base plus decorations:
+   cold steel at the lower left rising into heated-metal orange at the upper
+   right, where the studio key light also comes from. The ramp deliberately
+   skips violet and magenta — those read tropical sunset; steel-into-ember
+   reads gym. Nothing floats; every layer is a full-bleed wash.            */
+.hero-backdrop {
+  background:
+    /* The flare: sun low on the horizon, upper right. This is the brightest
+       point in the frame and anchors the whole composition. */
+    radial-gradient(
+      75% 65% at 84% 16%,
+      rgba(255, 138, 74, 0.55) 0%,
+      rgba(255, 107, 53, 0.28) 26%,
+      rgba(150, 70, 62, 0.16) 48%,
+      transparent 74%
+    ),
+    /* Warm ember band bleeding down and left out of the flare. */
+    radial-gradient(
+      95% 80% at 66% 34%,
+      rgba(196, 88, 62, 0.3) 0%,
+      rgba(110, 58, 66, 0.18) 42%,
+      transparent 72%
+    ),
+    /* Cold steel counterweight, lower left — the unheated end of the frame.
+       Desaturated blue-grey rather than navy: this is gym floor and iron,
+       not open sky. */
+    radial-gradient(
+      85% 75% at 8% 92%,
+      rgba(36, 50, 66, 0.6) 0%,
+      rgba(24, 32, 42, 0.34) 45%,
+      transparent 76%
+    ),
+    /* The field itself: cold steel → warm steel → heated metal, diagonal.
+       No violet or magenta anywhere in the ramp. */
+    linear-gradient(
+      152deg,
+      var(--hero-night) 0%,
+      var(--hero-steel) 28%,
+      #2c2a2c 52%,
+      #4a3128 76%,
+      #6b3a26 100%
+    );
+}
+
+/* Broad atmospheric wash rather than a discrete blob. Very large, very
+   soft, and always partly off-frame, so it reads as light in the air
+   instead of an object hovering in space. */
+.hero-shape {
+  position: absolute;
+  border-radius: 58% 42% 47% 53% / 52% 46% 54% 48%;
+  pointer-events: none;
+  filter: blur(110px);
+}
+
+/* Horizon haze: a soft bright band low in the frame, the way light pools
+   just above a horizon line. Pure CSS, no element needed. */
+.hero-haze {
+  background: linear-gradient(
+    to top,
+    rgba(255, 107, 53, 0.14) 0%,
+    rgba(255, 138, 74, 0.06) 14%,
+    transparent 34%
+  );
+}
+
+/* Vignette: warm-toned now, not neutral black, so the corners fall off
+   *into the palette* rather than punching holes of void in it. */
+.hero-vignette {
+  background: radial-gradient(
+    120% 100% at 70% 34%,
+    transparent 30%,
+    rgba(18, 16, 26, 0.42) 72%,
+    rgba(14, 13, 20, 0.72) 100%
+  );
+}
+
+/* Fine grid for texture and scale. Masked to fade out at the edges. */
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(80% 70% at 50% 45%, black 10%, transparent 78%);
+}
+
+.section-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 768px) {
+  .section-container {
+    padding-inline: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-container {
+    padding-inline: 3rem;
+  }
+}
+
+/* Primary CTA button */
+.btn-primary {
+  background: linear-gradient(135deg, #ff6b35, #ff8c5a);
+  box-shadow: 0 4px 20px rgba(255, 107, 53, 0.3);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 30px rgba(255, 107, 53, 0.5);
+  transform: scale(1.05);
+}
+
+/* Hero scroll indicator */
+@keyframes bounce-chevron {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+.animate-bounce-chevron {
+  animation: bounce-chevron 2s ease-in-out infinite;
+}
+
+/* Marquee infinite scroll */
+.marquee-wrapper {
+  overflow: hidden;
+  width: 100%;
+  /* Fade the edges so text dissolves rather than clipping hard. */
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 8%,
+    black 92%,
+    transparent
+  );
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+/* Testimonials auto-scroll — slower, pauses on hover per the plan spec. */
+.testimonial-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 45s linear infinite;
+}
+
+.testimonial-wrapper:hover .testimonial-track,
+.testimonial-wrapper:focus-within .testimonial-track {
+  animation-play-state: paused;
+}
+
+.marquee-content {
+  white-space: nowrap;
+  padding-right: 2rem;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-bounce-chevron {
+    animation: none;
+  }
+
+  .marquee-track,
+  .testimonial-track {
+    animation: none;
+  }
+
+  .grain-overlay {
+    display: none;
+  }
+
+  .animate-spin-slow,
+  .animate-pulse-glow {
+    animation: none;
+  }
+}
+
+/* 3D fallback animations */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+/* Expanding ring — play button and WhatsApp FAB */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-ring {
+    animation: none;
+  }
+
+  /* Neutralise the velocity shear and every looping decorative animation.
+     Motion's own reveals are already stripped by MotionConfig. */
+  .velocity-skew {
+    transform: none;
+    transition: none;
+  }
+
+  .animate-float,
+  .animate-float-subtle,
+  .animate-glow-sweep {
+    animation: none;
+  }
+
+  /* The hero blobs morph via Motion's `animate` on borderRadius/scale. Motion's
+     reducedMotion="user" only strips transform and layout animations, so the
+     border-radius morph would otherwise survive — pin the shape explicitly and
+     drop the blur cost along with it. */
+  .hero-shape {
+    border-radius: 50%;
+    filter: blur(56px);
+  }
+
+  .hero-grid {
+    display: none;
+  }
+
+  .will-animate {
+    will-change: auto;
+  }
+}
+
+/* Slow ambient float for decorative panels. */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+.animate-float {
+  animation: float 7s ease-in-out infinite;
+}
+
+/* Shallow variant for the hero highlight pins. The 14px travel above is
+   tuned for large decorative panels; at chip scale it reads as drifting
+   rather than floating, and breaks the pin's link to the product behind it. */
+@keyframes float-subtle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-float-subtle {
+  animation: float-subtle 6s ease-in-out infinite;
+}
+
+/* Sweeping sheen used on primary CTAs. */
+@keyframes glow-sweep {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-glow-sweep {
+  background-size: 200% auto;
+  animation: glow-sweep 4s linear infinite;
+}
