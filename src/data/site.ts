@@ -171,10 +171,86 @@ export const siteConfig = {
     { label: "Services", href: "/#services" },
     { label: "Pricing", href: "/#pricing" },
     { label: "App", href: "/#app" },
+    { label: "Blog", href: "/blog" },
     { label: "Book", href: "/#booking" },
     { label: "FAQ", href: "/#faq" },
     { label: "Contact", href: "/#contact-form" },
   ] satisfies NavLink[],
+  /**
+   * The blog. Posts themselves are Markdown files under `content/blog/` — this
+   * only holds the copy around them (index headings, CTA, empty state), so
+   * publishing never means editing this file.
+   */
+  blog: {
+    label: "Journal",
+    title: "Fitness & Nutrition Blog",
+    subtitle:
+      "Practical, no-nonsense guidance on training, nutrition, and building habits that hold — updated regularly.",
+    /**
+     * Meta description for /blog. Written separately from `subtitle`: the
+     * on-page line is a promise to a reader already here, this one has to earn
+     * a click in a results page against nine other results.
+     */
+    metaDescription:
+      "Evidence-based fitness and nutrition articles from certified coach Faisal Noor — training programmes, diet strategy, fat loss, and habits that actually last.",
+    /** Shown on the index before the first post is published. */
+    emptyState:
+      "The first articles are being written. Check back shortly, or follow along on Instagram in the meantime.",
+    /** Label for the "all posts" pill in the tag filter. */
+    allTagsLabel: "All Posts",
+    /**
+     * Funnel buckets from the content calendar. Each article declares one in
+     * its frontmatter (`bucket: "DIET"`) and the matching CTA closes the post.
+     *
+     * This is the mechanism that connects an article to revenue: a diet
+     * article that ends by offering a strength course is a wasted conversion,
+     * so the bucket is what decides the closing offer rather than one generic
+     * block on every post.
+     *
+     * Copy follows the template's soft-sell framing — the next step for
+     * someone who wants this personalised, never a hard pitch.
+     */
+    buckets: {
+      DIET: {
+        title: "Want this built around your routine?",
+        body: "A plan that works has to fit the food you actually eat and the schedule you actually keep. That is what diet coaching is — your targets, your groceries, adjusted as you go.",
+        primary: "Start with a Diet Plan",
+        primaryHref: "/#pricing-diet",
+      },
+      STRENGTH: {
+        title: "Want form checks instead of guessing?",
+        body: "Reading about progressive overload is one thing; having someone watch your form and adjust the programme as you get stronger is another. That is what the course covers.",
+        primary: "See the Strength Course",
+        primaryHref: "/#pricing-strength",
+      },
+      CONSULT: {
+        title: "Still not sure what is stalling your progress?",
+        body: "Most plateaus come down to one or two specific things, and they are usually not what people assume. A single session is normally enough to pinpoint it.",
+        primary: "Book a Session",
+        primaryHref: "/#pricing-consultancy",
+      },
+      APP: {
+        title: "Want to track this without a spreadsheet?",
+        body: "Every calculator in this article is built into FitLife — BMI, TDEE, calorie targets, and daily tracking in one place. Free on iPhone, iPad, and Mac.",
+        primary: "Download FitLife",
+        primaryHref: "https://apps.apple.com/us/app/fitlife-health-calculator/id6791146508",
+        /** Leaves the site, so the button opens in a new tab. */
+        primaryExternal: true,
+      },
+    },
+    /**
+     * Fallback for a post with no `bucket` set. Deliberately CONSULT-shaped:
+     * it is the lowest-friction offer, so it is the safest default when an
+     * article has not declared its funnel target.
+     */
+    cta: {
+      title: "Want a plan built around you?",
+      body: "Articles give you the principles. A plan applies them to your body, your schedule, and your goal — book a consultation and we'll map it out together.",
+      primary: "Book a Consultation",
+      primaryHref: "/#booking",
+      secondary: "Ask on WhatsApp",
+    },
+  },
   services: [
     {
       id: "diet-plans",

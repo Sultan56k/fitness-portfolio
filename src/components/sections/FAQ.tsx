@@ -9,6 +9,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { RevealGroup, RevealItem } from "@/components/motion/Reveal";
 import { EASE_OUT_EXPO } from "@/components/motion/variants";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/analytics";
 
 /**
  * FAQPage structured data. This is what earns the expanded FAQ rich result in
@@ -88,7 +89,18 @@ export function FAQ() {
                       aria-expanded={isOpen}
                       aria-controls={`faq-panel-${item.id}`}
                       id={`faq-trigger-${item.id}`}
-                      onClick={() => setOpenId(isOpen ? null : item.id)}
+                      onClick={() => {
+                        setOpenId(isOpen ? null : item.id);
+                        // Only the open half is reported. Which questions get
+                        // asked is the signal worth having — a close is just
+                        // the visitor tidying up after reading the answer.
+                        if (!isOpen) {
+                          trackEvent("faq_open", {
+                            question_id: item.id,
+                            question: item.question,
+                          });
+                        }
+                      }}
                     >
                       <span
                         className={cn(

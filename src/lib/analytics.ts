@@ -27,7 +27,39 @@ export type AnalyticsEvent =
   | "app_store_click"
   | "contact_form_submit"
   | "contact_form_success"
-  | "contact_form_error";
+  | "contact_form_error"
+  | "blog_share_click"
+  | "blog_post_cta_click"
+  /** A section scrolled into view. Carries `section` — see SectionName. */
+  | "section_view"
+  | "faq_open"
+  | "nav_link_click"
+  | "blog_post_view"
+  | "blog_index_view"
+  | "testimonial_view"
+  | "outbound_click";
+
+/**
+ * Named page sections, in the order a visitor meets them.
+ *
+ * A closed union rather than a free string so the funnel reports on one stable
+ * set of names — a "pricing" here and a "Pricing" there would split the same
+ * step into two rows in GA4 and quietly understate both.
+ */
+export type SectionName =
+  | "hero"
+  | "about"
+  | "services"
+  | "expertise"
+  | "pricing"
+  | "app"
+  | "booking"
+  | "testimonials"
+  | "faq"
+  | "contact"
+  | "classes"
+  | "blog_index"
+  | "blog_post";
 
 export type AnalyticsProps = Record<string, string | number | boolean>;
 
@@ -36,14 +68,28 @@ interface AnalyticsWindow extends Window {
   va?: (event: "event", payload: Record<string, unknown>) => void;
   /** Plausible. */
   plausible?: (event: string, options?: { props?: AnalyticsProps }) => void;
-  /** GA4 / gtag.js. */
-  gtag?: (
-    command: "event",
-    event: string,
-    params?: Record<string, unknown>,
-  ) => void;
+  /** GA4 / gtag.js is declared on the global Window below, so it is
+   *  inherited here rather than redeclared. */
   /** GTM data layer. */
   dataLayer?: Record<string, unknown>[];
+}
+
+/**
+ * Augments the real `window` with the gtag the GA4 script installs.
+ *
+ * Declared globally rather than cast at each call site so the loader in
+ * GoogleAnalytics.tsx and `trackEvent` below agree on one signature — the
+ * event-name and params shape is then checked in both places instead of only
+ * where the local interface above happens to be used.
+ */
+declare global {
+  interface Window {
+    gtag?: (
+      command: "event" | "config" | "js" | "set",
+      targetOrEvent: string | Date,
+      params?: Record<string, unknown>,
+    ) => void;
+  }
 }
 
 /**

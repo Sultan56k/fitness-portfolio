@@ -3,7 +3,8 @@ import { LegalPage, type LegalSection } from "@/components/layout/LegalPage";
 import { siteConfig } from "@/data/site";
 
 export const metadata: Metadata = {
-  title: `Privacy Policy | ${siteConfig.brand.name}`,
+  // Bare — the root layout's title template appends the brand name.
+  title: "Privacy Policy",
   description: `How ${siteConfig.brand.name} collects, uses, and protects your personal information.`,
   alternates: { canonical: "/privacy" },
   robots: { index: true, follow: true },

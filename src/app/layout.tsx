@@ -7,6 +7,7 @@ import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { MotionProvider } from "@/components/providers/MotionProvider";
 import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 import { ScrollProgress } from "@/components/motion/ScrollProgress";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { siteConfig } from "@/data/site";
 
 const bebasNeue = Bebas_Neue({
@@ -26,7 +27,15 @@ const pageTitle = `${siteConfig.brand.name} | Fitness Coach & Nutrition Speciali
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.brand.url),
-  title: pageTitle,
+  title: {
+    default: pageTitle,
+    /**
+     * Child pages set a bare `title` and the brand is appended here, so no
+     * page has to remember to add it — and none can drift from the format.
+     * `absolute` on a child opts out where a page composes its own.
+     */
+    template: `%s | ${siteConfig.brand.name}`,
+  },
   description: siteConfig.brand.description,
   keywords: [
     "fitness coach",
@@ -39,6 +48,24 @@ export const metadata: Metadata = {
     "BMI calculator app",
     "calorie tracker",
   ],
+  /**
+   * Canonical for the homepage. Inherited by any page that does not set its
+   * own, which prevents the same content being indexed under both a bare and
+   * a trailing-slash or query-parameter URL.
+   */
+  alternates: {
+    canonical: "/",
+    types: { "application/rss+xml": `${siteConfig.brand.url}/blog/rss.xml` },
+  },
+  authors: [{ name: siteConfig.brand.name, url: siteConfig.brand.url }],
+  creator: siteConfig.brand.name,
+  publisher: siteConfig.brand.name,
+  category: "Health & Fitness",
+  /**
+   * Disables automatic phone-number detection on iOS, which otherwise rewrites
+   * digit strings in body copy (prices, rep ranges) as tel: links.
+   */
+  formatDetection: { telephone: false, address: false, email: false },
   openGraph: {
     type: "website",
     url: siteConfig.brand.url,
@@ -63,6 +90,19 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    /**
+     * The `max-*` directives are opt-ins, not limits. By default Google shows a
+     * short text snippet and no video/image preview from a page; -1 and "large"
+     * grant it the full snippet and a large image thumbnail, which is what makes
+     * an article listing occupy more of the results page.
+     */
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
   },
 };
 
@@ -107,12 +147,31 @@ const appJsonLd = {
 };
 
 /**
+ * WebSite node. Names the site as an entity in its own right and, via
+ * `publisher`, ties every page back to the Person below — so the homepage, the
+ * blog, and the app read as one operation rather than three unrelated results.
+ */
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${siteConfig.brand.url}/#website`,
+  name: siteConfig.brand.name,
+  alternateName: siteConfig.brand.shortName,
+  description: siteConfig.brand.description,
+  url: siteConfig.brand.url,
+  inLanguage: "en",
+  publisher: { "@id": `${siteConfig.brand.url}/#person` },
+};
+
+/**
  * JSON-LD Person schema (§16). Rendered into <head> so search engines can
  * attribute the services and social profiles to the trainer.
  */
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
+  // Stable identifier the WebSite node above points at as its publisher.
+  "@id": `${siteConfig.brand.url}/#person`,
   name: siteConfig.brand.name,
   description: siteConfig.brand.description,
   url: siteConfig.brand.url,
@@ -164,6 +223,26 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${bebasNeue.variable} ${inter.variable}`}>
       <head>
+        {/* Feed autodiscovery — how readers and aggregators find the blog. */}
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title={`${siteConfig.blog.title} | ${siteConfig.brand.name}`}
+          href="/blog/rss.xml"
+        />
+        {/* Warms the connection to the GA endpoint, which is requested only
+            after hydration and would otherwise pay full DNS+TLS then. */}
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        {/* Warms the connection to the font CDN before the CSS asks for it. */}
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -190,6 +269,7 @@ export default function RootLayout({
             <WhatsAppButton />
           </SmoothScrollProvider>
         </MotionProvider>
+        <GoogleAnalytics />
       </body>
     </html>
   );

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { siteConfig } from "@/data/site";
 
 export const metadata: Metadata = {
-  title: `${siteConfig.notFound.title} | ${siteConfig.brand.name}`,
+  // Bare — the root layout's title template appends the brand name.
+  title: siteConfig.notFound.title,
   // A 404 must never be indexed — it would compete with the real pages.
   robots: { index: false, follow: true },
 };

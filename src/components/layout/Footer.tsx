@@ -50,6 +50,18 @@ export function Footer() {
           </p>
           <nav className="flex items-center gap-6" aria-label="Legal">
             <Link
+              href="/blog"
+              className="transition-colors hover:text-accent-lime"
+            >
+              Blog
+            </Link>
+            <a
+              href="/blog/rss.xml"
+              className="transition-colors hover:text-accent-lime"
+            >
+              RSS
+            </a>
+            <Link
               href="/privacy"
               className="transition-colors hover:text-accent-lime"
             >

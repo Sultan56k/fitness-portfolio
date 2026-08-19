@@ -3,7 +3,8 @@ import { LegalPage, type LegalSection } from "@/components/layout/LegalPage";
 import { siteConfig } from "@/data/site";
 
 export const metadata: Metadata = {
-  title: `Terms of Service | ${siteConfig.brand.name}`,
+  // Bare — the root layout's title template appends the brand name.
+  title: "Terms of Service",
   description: `The terms that apply when you use ${siteConfig.brand.name} coaching services.`,
   alternates: { canonical: "/terms" },
   robots: { index: true, follow: true },
