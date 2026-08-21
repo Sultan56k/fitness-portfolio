@@ -491,8 +491,9 @@ html.modal-open body {
      than the space below. */
   margin-top: 2.5em;
   margin-bottom: -0.5em;
-  /* Clears the sticky navbar when a contents link jumps to this heading. */
-  scroll-margin-top: 6rem;
+  /* Clears the sticky navbar when a contents link jumps to this heading.
+     Tracks the navbar's tallest step (h-28 = 7rem at lg) plus a little air. */
+  scroll-margin-top: 8rem;
 }
 
 .post-prose h2 {

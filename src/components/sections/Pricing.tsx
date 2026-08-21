@@ -102,7 +102,7 @@ export function Pricing() {
                 key={category.id}
                 // Anchor target for the service cards' "View plans" link.
                 id={`pricing-${category.id}`}
-                className="scroll-mt-24"
+                className="scroll-mt-32"
               >
                 <Reveal preset="fade-up">
                   <div className="mx-auto max-w-2xl text-center">

@@ -41,7 +41,16 @@ function readFrontmatter(filename) {
   const fields = {};
   for (const line of match[1].split(/\r?\n/)) {
     const pair = /^(\w+):\s*(.*)$/.exec(line);
-    if (pair) fields[pair[1]] = pair[2].replace(/^["']|["']$/g, "").trim();
+    if (!pair) continue;
+    let value = pair[2].trim();
+    // Unwrap the quoting style YAML used, and undo its escaping: doubled
+    // apostrophes inside single quotes, backslash-escaped quotes inside double.
+    if (value.startsWith("'") && value.endsWith("'")) {
+      value = value.slice(1, -1).replace(/''/g, "'");
+    } else if (value.startsWith('"') && value.endsWith('"')) {
+      value = value.slice(1, -1).replace(/\\"/g, '"');
+    }
+    fields[pair[1]] = value;
   }
   return fields;
 }

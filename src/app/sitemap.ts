@@ -1,6 +1,11 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/data/site";
-import { getAllPosts, getAllTags } from "@/lib/blog";
+import {
+  getAllPosts,
+  getAllTags,
+  getPostsByTag,
+  POSTS_PER_PAGE,
+} from "@/lib/blog";
 
 /**
  * Every route is enumerated here, and the blog entries are derived from the
@@ -23,11 +28,43 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  const tagEntries: MetadataRoute.Sitemap = getAllTags().map((entry) => ({
-    url: `${siteConfig.brand.url}/blog/tag/${entry.slug}`,
-    changeFrequency: "weekly",
-    priority: 0.5,
-  }));
+  /**
+   * Paginated index pages. Page 1 is the bare /blog entry below, so this
+   * starts at 2 — listing /blog/page/1 would submit a URL that does not exist.
+   * These exist in the sitemap so crawlers can reach older posts even before
+   * they have followed the pagination links.
+   */
+  const pageCount = Math.max(1, Math.ceil(posts.length / POSTS_PER_PAGE));
+  const pageEntries: MetadataRoute.Sitemap = Array.from(
+    { length: Math.max(0, pageCount - 1) },
+    (_, index) => ({
+      url: `${siteConfig.brand.url}/blog/page/${index + 2}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.4,
+    }),
+  );
+
+  // Each tag's page 1, plus its later pages where the topic has enough posts
+  // to need them. Only the busiest few tags contribute more than one entry.
+  const tagEntries: MetadataRoute.Sitemap = getAllTags().flatMap((entry) => {
+    const tagPages = Math.max(
+      1,
+      Math.ceil(getPostsByTag(entry.slug).length / POSTS_PER_PAGE),
+    );
+
+    return [
+      {
+        url: `${siteConfig.brand.url}/blog/tag/${entry.slug}`,
+        changeFrequency: "weekly" as const,
+        priority: 0.5,
+      },
+      ...Array.from({ length: Math.max(0, tagPages - 1) }, (_, index) => ({
+        url: `${siteConfig.brand.url}/blog/tag/${entry.slug}/page/${index + 2}`,
+        changeFrequency: "weekly" as const,
+        priority: 0.3,
+      })),
+    ];
+  });
 
   return [
     {
@@ -44,6 +81,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "daily",
       priority: 0.9,
     },
+    ...pageEntries,
     ...postEntries,
     ...tagEntries,
     {

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { siteConfig } from "@/data/site";
 import { FooterContactLinks } from "./FooterContactLinks";
@@ -8,8 +9,20 @@ export function Footer() {
       <div className="section-container py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-2">
+            {/* The lockup already reads as the brand name, but it is an image,
+                so the h2 keeps the name as text for the document outline and
+                for screen readers. Not lazy-loaded despite being below the
+                fold: it is the same file the header already fetched. */}
             <h2 className="font-display text-3xl tracking-wide text-white">
-              {siteConfig.brand.name}
+              <Image
+                src="/brand/logo-lockup-dark.png"
+                alt=""
+                width={685}
+                height={196}
+                sizes="320px"
+                className="h-16 w-auto md:h-20"
+              />
+              <span className="sr-only">{siteConfig.brand.name}</span>
             </h2>
             <p className="mt-3 max-w-md text-text-secondary">{siteConfig.brand.tagline}</p>
             <p className="mt-4 max-w-md text-sm leading-relaxed text-text-muted">

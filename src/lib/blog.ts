@@ -341,3 +341,77 @@ export function getRelatedPosts(current: PostMeta, limit = 3): PostMeta[] {
 export function postUrl(slug: string): string {
   return `${siteConfig.brand.url}/blog/${slug}`;
 }
+
+/**
+ * Posts per listing page.
+ *
+ * 9 divides evenly by the 3-column grid, so no page ends in a ragged row of
+ * one. On the unfiltered index the newest post renders wide above the grid,
+ * which leaves 8 in the grid there — deliberate, since the feature card is
+ * doing the work a third column would.
+ */
+export const POSTS_PER_PAGE = 9;
+
+export interface Paginated<T> {
+  items: T[];
+  /** 1-based. */
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  hasPrev: boolean;
+  hasNext: boolean;
+}
+
+/**
+ * Slices a post list for one page.
+ *
+ * Always reports at least one page so an empty blog still renders a valid
+ * (empty) page 1 rather than "page 1 of 0".
+ */
+export function paginate<T>(items: T[], page: number): Paginated<T> {
+  const totalItems = items.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / POSTS_PER_PAGE));
+  // Clamped rather than trusted: `page` comes from the URL.
+  const current = Math.min(Math.max(1, page), totalPages);
+  const start = (current - 1) * POSTS_PER_PAGE;
+
+  return {
+    items: items.slice(start, start + POSTS_PER_PAGE),
+    page: current,
+    totalPages,
+    totalItems,
+    hasPrev: current > 1,
+    hasNext: current < totalPages,
+  };
+}
+
+/**
+ * Page numbers to render, with `null` marking a gap ("…").
+ *
+ * Always shows first and last so the ends of the archive stay one click away,
+ * plus a window around the current page. Without the ellipsis a blog with 40
+ * pages would render 40 links and wrap across several lines on a phone.
+ */
+export function pageNumbers(current: number, total: number): (number | null)[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const pages = new Set<number>([1, total, current]);
+  if (current > 1) pages.add(current - 1);
+  if (current < total) pages.add(current + 1);
+  // Keeps the bar a stable width at the ends, where the window is one-sided.
+  if (current <= 3) [2, 3, 4].forEach((n) => pages.add(n));
+  if (current >= total - 2) [total - 3, total - 2, total - 1].forEach((n) => pages.add(n));
+
+  const sorted = [...pages].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b);
+
+  const result: (number | null)[] = [];
+  let previous = 0;
+  for (const page of sorted) {
+    if (previous && page - previous > 1) result.push(null);
+    result.push(page);
+    previous = page;
+  }
+  return result;
+}

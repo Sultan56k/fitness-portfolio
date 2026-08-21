@@ -22,16 +22,22 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#15181e",
     theme_color: "#15181e",
     categories: ["health", "fitness", "lifestyle"],
+    // Points at the real brand mark in public/brand rather than the file-based
+    // /icon and /apple-icon routes. Those are emitted with a content hash in
+    // their URL, which a manifest written by hand cannot know; a stale literal
+    // path there is a silent 404 on "add to home screen".
     icons: [
       {
-        src: "/icon",
-        sizes: "32x32",
+        src: "/brand/icon-mark.png",
+        sizes: "512x512",
         type: "image/png",
+        purpose: "any",
       },
       {
-        src: "/apple-icon",
-        sizes: "180x180",
+        src: "/brand/icon-mark.png",
+        sizes: "512x512",
         type: "image/png",
+        purpose: "maskable",
       },
     ],
   };

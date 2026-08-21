@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { Instagram, Menu, X } from "lucide-react";
 import { siteConfig } from "@/data/site";
@@ -44,21 +45,38 @@ export function Navbar() {
           : "border-transparent bg-transparent",
       )}
     >
-      <div className="section-container flex h-16 items-center justify-between md:h-20">
+      {/* Grows with the logo: the lockup steps to h-14/h-16 at md/lg, which
+          would clip against the old flat h-20. Each step keeps ~12px of
+          breathing room above and below the mark. */}
+      <div className="section-container flex h-20 items-center justify-between md:h-24 lg:h-28">
         <Link
           href="/#home"
-          // Sized down from text-2xl/3xl: the wordmark is four words, and at
-          // the larger size it crowded the burger button on narrow phones.
-          className="relative z-50 font-display text-lg tracking-wide text-white sm:text-xl md:text-2xl"
+          className="relative z-50 flex shrink-0 items-center"
           onClick={closeMenu}
+          aria-label={`${siteConfig.brand.name} — home`}
         >
-          {siteConfig.brand.name}
+          {/* The -dark variant, not the raw supplied file: the original has
+              near-black #2B2A28 wordmark text meant for a white background,
+              which is all but invisible on the #15181e header. It is also
+              pre-trimmed of ~190px of transparent right padding, so the glyphs
+              fill the height they are given instead of scaling empty space.
+              Intrinsic 685x196; width auto keeps the 3.49:1 ratio off height. */}
+          <Image
+            src="/brand/logo-lockup-dark.png"
+            alt={`${siteConfig.brand.name} — ${siteConfig.brand.tagline}`}
+            width={685}
+            height={196}
+            priority
+            // ~230px wide at the h-16 step; 288 covers 1.25x DPR headroom.
+            sizes="288px"
+            className="h-11 w-auto sm:h-12 md:h-14 lg:h-16"
+          />
         </Link>
 
         {/* gap tightens at lg: eight links plus the CTA cluster overflow a
             1024px viewport at the original gap-8. */}
         <nav
-          className="hidden items-center gap-5 lg:flex xl:gap-8"
+          className="hidden items-center gap-4 lg:flex xl:gap-8"
           aria-label="Main navigation"
         >
           {siteConfig.navLinks.map((link) => (
