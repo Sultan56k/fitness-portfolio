@@ -59,10 +59,12 @@ export function About() {
                 className="relative aspect-[4/5] overflow-hidden p-0"
               >
                 {/*
-                  The source is 3:4 and the frame is 4:5, so the crop is
-                  shallow. `object-top` biases what little is trimmed toward
-                  the bottom of the frame — the subject's head sits in the
-                  upper third, and centring would clip it.
+                  The source is 3:4 and the frame is 4:5, so only ~6% of the
+                  height is trimmed. It is taken evenly from both ends rather
+                  than all from the bottom: in this frame the subject stands
+                  centre with his head around a third of the way down and his
+                  hands near the lower edge, so a bottom-weighted trim would
+                  clip the arms that the shot is composed around.
 
                   `priority` is deliberately omitted: this sits below the fold
                   behind the hero, and preloading it would compete with the
@@ -73,19 +75,31 @@ export function About() {
                   alt="Faisal Noor, certified fitness coach"
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-cover object-top"
+                  className="object-cover object-center"
                   quality={85}
                 />
 
-                {/* Grade toward the page palette: the photo is cool office
-                    daylight against a warm dark site, and unmodified it read
-                    as a snapshot pasted onto the design. */}
+                {/*
+                    Grade toward the page palette. This frame is already shot
+                    in dark gym lighting — mean luminance sits near 62/255, and
+                    the foot of the image nearer 43 — so the scrim is kept much
+                    lighter than a bright source would need. The previous 85%
+                    foot was tuned for a daylight photo and crushed this one's
+                    torso to black; 70% is enough to seat the name plate while
+                    leaving the subject readable.
+                */}
                 <div
-                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary/85 via-bg-primary/15 to-transparent"
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-bg-primary/70 via-bg-primary/10 to-transparent"
                   aria-hidden="true"
                 />
+                {/*
+                    Colour wash. Halved from the original: the wall behind the
+                    subject already carries the site's lime accent, so the full
+                    strength tint double-graded a photo that was close to the
+                    palette to begin with.
+                */}
                 <div
-                  className="pointer-events-none absolute inset-0 mix-blend-soft-light bg-gradient-to-br from-accent-orange/25 to-accent-cyan/15"
+                  className="pointer-events-none absolute inset-0 mix-blend-soft-light bg-gradient-to-br from-accent-orange/12 to-accent-cyan/8"
                   aria-hidden="true"
                 />
 
