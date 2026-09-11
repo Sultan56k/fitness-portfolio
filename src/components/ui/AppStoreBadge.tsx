@@ -9,6 +9,12 @@ import { cn } from "@/lib/utils";
  * proportions, and the "Download on the" / "App Store" hierarchy follow
  * Apple's marketing guidelines — the badge is Apple's trademark and must not
  * be recoloured, rotated, or re-typeset beyond scaling.
+ *
+ * Both text runs pin their width with `textLength` + `lengthAdjust`. An SVG
+ * `<text>` otherwise renders at whatever width the visitor's resolved font
+ * happens to produce, so the lockup can overflow the rounded rect on devices
+ * that have none of the fonts in the stack. Pinning makes it fit by
+ * construction rather than by luck of what is installed.
  */
 export function AppStoreBadge({ className }: { className?: string }) {
   return (
@@ -40,6 +46,8 @@ export function AppStoreBadge({ className }: { className?: string }) {
         fontFamily="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif"
         fontSize="7.5"
         letterSpacing="0.15"
+        textLength="52"
+        lengthAdjust="spacingAndGlyphs"
       >
         Download on the
       </text>
@@ -52,6 +60,8 @@ export function AppStoreBadge({ className }: { className?: string }) {
         fontSize="16.5"
         fontWeight="500"
         letterSpacing="-0.4"
+        textLength="62"
+        lengthAdjust="spacingAndGlyphs"
       >
         App Store
       </text>

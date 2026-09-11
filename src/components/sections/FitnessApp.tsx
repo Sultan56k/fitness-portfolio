@@ -22,6 +22,7 @@ import { AppStoreBadge } from "@/components/ui/AppStoreBadge";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { AppPreview } from "./AppPreview";
+import { SecondaryAppCard } from "./SecondaryAppCard";
 import { trackEvent } from "@/lib/analytics";
 
 const iconMap: Record<AppFeature["icon"], LucideIcon> = {
@@ -184,6 +185,8 @@ export function FitnessApp() {
             );
           })}
         </RevealGroup>
+
+        <SecondaryAppCard />
       </div>
     </section>
   );

@@ -110,6 +110,36 @@ export interface AppFeature {
   icon: "calculator" | "activity" | "utensils" | "dumbbell" | "bell" | "footprints";
 }
 
+/**
+ * A second, smaller app entry rendered as a compact card beneath the flagship
+ * app block rather than as its own section.
+ *
+ * Kept as a distinct type from the `app` object above on purpose: this one
+ * carries no feature list, no spec row, and no device render, because it is a
+ * cross-link to a separate product rather than the companion tool the coaching
+ * is built around. Giving it the full `app` shape would invite it to grow into
+ * a second hero and flatten the page's hierarchy.
+ */
+export interface SecondaryApp {
+  /** Small label above the name, e.g. "Also from the studio". */
+  label: string;
+  name: string;
+  /** One-line qualifier beside the name. */
+  subtitle: string;
+  /** Two or three sentences — this is the whole card body. */
+  description: string;
+  /** Store listing URL. Opened in a new tab. */
+  url: string;
+  /** Which badge to render, and which analytics event the tap fires. */
+  store: "play" | "appStore";
+  price: string;
+  platforms: string;
+  /** Short bullet highlights. Rendered as a compact chip row. */
+  highlights: string[];
+  /** Accessible-label verb phrase, e.g. "Get it on Google Play". */
+  cta: string;
+}
+
 export interface NavLink {
   label: string;
   /**
@@ -491,8 +521,32 @@ export const siteConfig = {
      * to discover after tapping — an unanswered "is there an Android version?"
      * is a support message the site can absorb here instead.
      */
-    androidNote: "iOS only for now — an Android version is not yet available.",
+    /**
+     * FitLife itself still has no Android build. Stated plainly rather than
+     * left for a visitor to discover after tapping. Note this is scoped to
+     * FitLife specifically — `secondaryApp` below is a different product and
+     * is Android-only — so the wording names the app rather than the studio.
+     */
+    androidNote: "FitLife is iOS only for now — an Android version is not yet available.",
   },
+  /**
+   * A second app from the same studio, shown as a compact card under the
+   * FitLife block. It is cross-linked rather than pitched: it is not part of
+   * the coaching offer, so it gets a card and a badge, not a section.
+   */
+  secondaryApp: {
+    label: "Also from the studio",
+    name: "Strong Her",
+    subtitle: "Strength training for women",
+    description:
+      "A separate app built for women training for strength — structured programmes, progressive overload, and a training log that tracks the lifts rather than just the calories. Available on Android.",
+    url: "https://play.google.com/store/apps/details?id=com.weiblocks.strong.her",
+    store: "play",
+    price: "Free",
+    platforms: "Android",
+    highlights: ["Strength programmes", "Progress tracking", "Workout log"],
+    cta: "Get it on Google Play",
+  } satisfies SecondaryApp,
   booking: {
     title: "Book Your Consultation",
     subtitle:

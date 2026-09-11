@@ -25,6 +25,7 @@ export type AnalyticsEvent =
   | "service_detail_open"
   | "class_video_open"
   | "app_store_click"
+  | "play_store_click"
   | "contact_form_submit"
   | "contact_form_success"
   | "contact_form_error"
